@@ -4,6 +4,7 @@
 #define AMBIENT 0.05
 
 float raymarch_d(vec3, vec3);
+float raymarch_s(vec3, vec3, float);
 
 float scene_dist(vec3 p){
     vec4 s = vec4(0, 1, 6, 1);
@@ -31,8 +32,8 @@ vec3 calc_light(vec3 p){
     float str = max(AMBIENT,dot(n, ldir));
     float e = str * 5. / dist;
     if(e <= AMBIENT) return vec3(AMBIENT);
-    float shadow = raymarch_d(p + n * EPSILON * 2., ldir);
-    if(shadow < dist) return vec3(AMBIENT);
+    float shadow = raymarch_s(p + n * EPSILON * 2., ldir, 8.);
+    e *= shadow;
     return vec3(e);
 }
 
@@ -47,6 +48,20 @@ float raymarch_d(vec3 ro, vec3 rd){
             break;
     }
     return dO;
+}
+
+float raymarch_s(vec3 ro, vec3 rd, float k){
+	float dO = 0.001;
+    vec3 p;
+    float res = 1.;
+    for(int i = 0; i < MAX_STEPS; i++){
+    	p = ro + rd*dO;
+        float dS = scene_dist(p);
+        dO += dS;
+        res = min(res, k*dS/dO);
+        if(dO > MAX_DIST) break;
+    }
+    return res;
 }
 
 vec3 raymarch_p(vec3 ro, vec3 rd){
