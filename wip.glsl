@@ -38,17 +38,21 @@ float capsule(vec3 p, float h, float r)
 
 float scene_dist(vec3 p){
     float t = iTime;
-    float head = sphere(p,vec3(0,1,5), .5);
-    float eye0 = sphere(p,vec3(-.4,2.,5.+.3), .2);
-    float eye1 = sphere(p,vec3(-.4,2.,5.-.3), .2);
-    float stick0 = capsule(p-vec3(-.2,1,5.+.3), 1., .05);
-    float stick1 = capsule(p-vec3(-.2,1,5.-.3), 1., .05);
+    float head = sphere(p,vec3(-.9,1,5), .5);
+    float eye0 = sphere(p,vec3(-1.3,2.,5.+.3), .2);
+    float eye1 = sphere(p,vec3(-1.3,2.,5.-.3), .2);
+    float stick0 = capsule(p-vec3(-1.1,1,5.+.3), 1., .05);
+    float stick1 = capsule(p-vec3(-1.1,1,5.-.3), 1., .05);
     float c = .9*2.;
     vec3 q = p;
     q.x = mod(max(0.,p.x),c)-0.5*c;
     float body0 = sphere(q,vec3(0,1,5), .6);
+    float leg0l = capsule(q-vec3(0,.1,5.+.3), .5, .05);
+    float leg0r = capsule(q-vec3(0,.1,5.-.3), .5, .05);
     q.x = mod(max(0.,p.x + 0.9),c)-0.5*c;
     float body1 = sphere(q,vec3(0,1,5), .6);
+    float leg1l = capsule(q-vec3(0,.1,5.+.3), .5, .05);
+    float leg1r = capsule(q-vec3(0,.1,5.-.3), .5, .05);
     float floord = p.y;
     float d = sdfBlendUnion(head, eye0, .1);
     d = sdfBlendUnion(d, eye1, .1);
@@ -56,6 +60,10 @@ float scene_dist(vec3 p){
     d = sdfBlendUnion(d, stick1, .1);
     d = sdfBlendUnion(d, body0, .1);
     d = sdfBlendUnion(d, body1, .15);
+    d = sdfBlendUnion(d, leg0l, .15);
+    d = sdfBlendUnion(d, leg0r, .15);
+    d = sdfBlendUnion(d, leg1l, .15);
+    d = sdfBlendUnion(d, leg1r, .15);
     d = min(d, floord);
     return d;
 }
