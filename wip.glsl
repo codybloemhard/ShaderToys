@@ -5,12 +5,33 @@
 
 float raymarch_d(vec3, vec3);
 float raymarch_s(vec3, vec3, float);
+//iq's blend functions
+float sdfBlendUnion(float d1, float d2, float k){
+    float h = clamp(0.5 + 0.5*(d2-d1)/k, 0.0, 1.0);
+    return mix(d2, d1, h) - k*h*(1.0-h);
+}
+
+float sdfBlendSub(float d1, float d2, float k) {
+    float h = clamp(0.5 - 0.5*(d2+d1)/k, 0.0, 1.0);
+    return mix(d2, -d1, h) + k*h*(1.0-h);
+}
+
+float sdfBlendInter(float d1, float d2, float k) {
+    float h = clamp(0.5 - 0.5*(d2-d1)/k, 0.0, 1.0);
+    return mix(d2, d1, h) + k*h*(1.0-h);
+}
+
+float sphere(vec3 p, vec3 so, float sr){
+	return length(p - so) - sr;   
+}
 
 float scene_dist(vec3 p){
-    vec4 s = vec4(0, 1, 6, 1);
-    float sphere_dist = length(p-s.xyz)-s.w;
-    float plane_dist = p.y;
-    return min(sphere_dist, plane_dist);
+    float t = iTime;
+    float s0 = sphere(p,vec3(0,1,5), .5);
+    float floord = p.y;
+    float d = sdfBlendUnion(s0, s0, .1);
+    d = min(d, floord);
+    return d;
 }
 
 vec3 calc_normal(vec3 p) {
@@ -34,6 +55,7 @@ vec3 calc_light(vec3 p){
     if(e <= AMBIENT) return vec3(AMBIENT);
     float shadow = raymarch_s(p + n * EPSILON * 2., ldir, 8.);
     e *= shadow;
+    e = max(AMBIENT, e);
     return vec3(e);
 }
 
