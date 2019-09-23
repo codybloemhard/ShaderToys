@@ -5,6 +5,11 @@
 
 float raymarch_d(vec3, vec3);
 float raymarch_s(vec3, vec3, float);
+//https://stackoverflow.com/questions/45597118/fastest-way-to-do-min-max-based-on-specific-component-of-vectors-in-glsl
+vec2 minx(vec2 a, vec2 b)
+{
+    return mix( a, b, step( b.x, a.x ) );
+}
 //iq's blend functions
 float sdfBlendUnion(float d1, float d2, float k){
     float h = clamp(0.5 + 0.5*(d2-d1)/k, 0.0, 1.0);
@@ -25,11 +30,32 @@ float sphere(vec3 p, vec3 so, float sr){
 	return length(p - so) - sr;   
 }
 
+float capsule(vec3 p, float h, float r)
+{
+    p.y -= clamp(p.y, 0.0, h);
+    return length(p) - r;
+}
+
 float scene_dist(vec3 p){
     float t = iTime;
-    float s0 = sphere(p,vec3(0,1,5), .5);
+    float head = sphere(p,vec3(0,1,5), .5);
+    float eye0 = sphere(p,vec3(-.4,2.,5.+.3), .2);
+    float eye1 = sphere(p,vec3(-.4,2.,5.-.3), .2);
+    float stick0 = capsule(p-vec3(-.2,1,5.+.3), 1., .05);
+    float stick1 = capsule(p-vec3(-.2,1,5.-.3), 1., .05);
+    float c = .9*2.;
+    vec3 q = p;
+    q.x = mod(max(0.,p.x),c)-0.5*c;
+    float body0 = sphere(q,vec3(0,1,5), .6);
+    q.x = mod(max(0.,p.x + 0.9),c)-0.5*c;
+    float body1 = sphere(q,vec3(0,1,5), .6);
     float floord = p.y;
-    float d = sdfBlendUnion(s0, s0, .1);
+    float d = sdfBlendUnion(head, eye0, .1);
+    d = sdfBlendUnion(d, eye1, .1);
+    d = sdfBlendUnion(d, stick0, .1);
+    d = sdfBlendUnion(d, stick1, .1);
+    d = sdfBlendUnion(d, body0, .1);
+    d = sdfBlendUnion(d, body1, .15);
     d = min(d, floord);
     return d;
 }
