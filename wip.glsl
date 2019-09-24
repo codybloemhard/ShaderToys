@@ -83,8 +83,8 @@ float scene_dist(vec3 p){
 	there is a weird shadow artifact in the neg x dir,
 	as if the body kinda is there(but it shouldnt).
 	so we cut that part off, but smoothly*/
-    if(p.x < -4.) 
-        boi *= -p.x - 3.;
+    if(p.x < -3.) 
+        boi *= -p.x - 2.;
     float floord = p.y;
     float d = min(boi, floord);
     return d;
@@ -108,21 +108,21 @@ vec3 calc_light(vec3 p){
     float dist = length(tol);
     vec3 ldir = tol / dist;
     float str = max(0.,dot(n, ldir));
-    vec3 e = vec3(str * 1. / dist);
+    vec3 e = vec3(str * .5 / dist);
     float shadow = raymarch_s(p + n * EPSILON * 2., ldir, 4.);
     e *= shadow;
     //directional light (sun)
     vec3 dld = normalize(vec3(-1, 1, 1));
     float dl = max(0., dot(n,dld)) * 0.3;
     dl *= raymarch_s(p + n * EPSILON * 2., dld, 4.);
-    e += vec3(dl) * vec3(0.9, 0.5, 0.2);
+    e += vec3(dl) * normalize(vec3(1., 0.9, 0.8)) * 1.;
     //sky light
     vec3 skydir = vec3(0,1,0);
     float sky = max(0., dot(n,skydir));
     sky *= raymarch_s(p + n * EPSILON * 2., skydir, 2.);
-    e += sky * vec3(.3,.5,.9) * .2;
+    e += sky * normalize(vec3(.8,.9,1.)) * 1.;
     //indirect light
-    e += vec3(1.) * .1;
+    e += vec3(1.) * .2;
     e = max(vec3(AMBIENT), e);
     return e;
 }
@@ -164,7 +164,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     vec2 uv = (fragCoord-0.5*iResolution.xy) / iResolution.y;
 	
     vec3 col = vec3(0);
-    float cdist = 10.;
+    float cdist = 6.;
     ro = vec3(-1. + sin(iTime*.2)*cdist, 2., 0. + cos(iTime*.2)*cdist);
     vec3 cd = normalize(vec3(-1, 1, 0) - ro);
     vec3 ri = -normalize(cross(cd, vec3(0,1,0)));
