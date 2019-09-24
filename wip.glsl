@@ -1,5 +1,5 @@
-#define MAX_STEPS 100
-#define MAX_DIST 1000.
+#define MAX_STEPS 200
+#define MAX_DIST 10000.
 #define EPSILON 0.01
 #define AMBIENT 0.05
 
@@ -83,12 +83,12 @@ vec3 calc_normal(vec3 p) {
 
 vec3 calc_light(vec3 p){
 	vec3 n = calc_normal(p);
-    vec3 lpos = vec3(1, 5, 2);
+    vec3 lpos = vec3(-10, 50, 20);
     vec3 tol = lpos - p;
     float dist = length(tol);
     vec3 ldir = tol / dist;
     float str = max(AMBIENT,dot(n, ldir));
-    float e = str * 5. / dist;
+    float e = str * 50. / dist;
     if(e <= AMBIENT) return vec3(AMBIENT);
     float shadow = raymarch_s(p + n * EPSILON * 2., ldir, 8.);
     e *= shadow;
@@ -134,8 +134,12 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 	
     vec3 col = vec3(0);
     
-    vec3 ro = vec3(1, 1, 0);
-    vec3 rd = normalize(vec3(uv.x, uv.y, .5));
+    vec3 ro = vec3(-1. + sin(iTime*.2)*5., 1, 5. + cos(iTime*.2)*5.);
+    vec3 cd = normalize(vec3(-1, 1, 5) - ro);
+    vec3 ri = -normalize(cross(cd, vec3(0,1,0)));
+    vec3 up = -normalize(cross(ri, cd));
+    vec3 planep = ro + (cd*1.) + (ri*uv.x) + (up*uv.y);
+    vec3 rd = normalize(planep - ro);
     vec3 p = raymarch_p(ro, rd);
     col = calc_light(p);
     
