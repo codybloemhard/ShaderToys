@@ -39,11 +39,11 @@ float capsule(vec3 p, float h, float r)
 float scene_dist(vec3 p){
     float t = iTime;
     float z = 5.;
-    float head = sphere(p,vec3(-.9,1,z), .5);
-    float eye0 = sphere(p,vec3(-1.3,2.,z+.3), .2);
-    float eye1 = sphere(p,vec3(-1.3,2.,z-.3), .2);
-    float stick0 = capsule(p-vec3(-1.1,1,z+.3), 1., .05);
-    float stick1 = capsule(p-vec3(-1.1,1,z-.3), 1., .05);
+    float head = sphere(p,vec3(-1.,1,z), .8);
+    float eye0 = sphere(p,vec3(-1.,2.5,z+.3), .15);
+    float eye1 = sphere(p,vec3(-1.,2.5,z-.3), .15);
+    float stick0 = capsule(p-vec3(-1.,1.5,z+.3), 1., .05);
+    float stick1 = capsule(p-vec3(-1.,1.5,z-.3), 1., .05);
     float c = .9;
     vec3 q = p;
     q.x = mod(max(0.,p.x),c*2.)-c;
@@ -134,8 +134,8 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 	
     vec3 col = vec3(0);
     
-    vec3 ro = vec3(0, 1, 0);
-    vec3 rd = normalize(vec3(uv.x, uv.y, 1));
+    vec3 ro = vec3(1, 1, 0);
+    vec3 rd = normalize(vec3(uv.x, uv.y, .5));
     vec3 p = raymarch_p(ro, rd);
     col = calc_light(p);
     
