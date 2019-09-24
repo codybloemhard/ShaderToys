@@ -39,8 +39,7 @@ float capsule(vec3 p, float h, float r)
     return length(p) - r;
 }
 
-float scene_dist(vec3 p){
-    float t = iTime;
+float caterpillar_dist(vec3 p){
     float z = 0.;
     float head = sphere(p,vec3(-1.,1,z), .8);
     float balll = sphere(p,vec3(-1.,2.5,z+.3), .15);
@@ -62,7 +61,6 @@ float scene_dist(vec3 p){
     float eyel = sphere(p,vec3(-1.65,1.4,z+.3), .1);
     float eyer = sphere(p,vec3(-1.65,1.4,z-.3), .1);
     float nose = sphere(p,vec3(-1.6,.9,z), .3);
-    float floord = p.y;
     float d = sdfBlendUnion(head, balll, .1);
     d = sdfBlendUnion(d, ballr, .1);
     d = sdfBlendUnion(d, stickl, .15);
@@ -76,7 +74,15 @@ float scene_dist(vec3 p){
     d = sdfBlendUnion(d, eyel, .1);
     d = sdfBlendUnion(d, eyer, .1);
     d = sdfBlendUnion(d, nose, .1);
-    d = min(d, floord);
+    return d;
+}
+
+float scene_dist(vec3 p){
+    float boi = 10000.;
+    if(p.x > -5.) 
+        boi = caterpillar_dist(p);
+    float floord = p.y;
+    float d = min(boi, floord);
     return d;
 }
 
@@ -98,7 +104,7 @@ vec3 calc_light(vec3 p){
     vec3 ldir = tol / dist;
     float str = max(0.,dot(n, ldir));
     float e = str * 3. / dist;
-    float shadow = raymarch_s(p + n * EPSILON * 2., ldir, 8.);
+    float shadow = raymarch_s(p + n * EPSILON * 2., ldir, 4.);
     e *= shadow;
     //directional light (sun)
     vec3 dld = normalize(vec3(0,10,0) - p);
