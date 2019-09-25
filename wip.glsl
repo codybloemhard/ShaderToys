@@ -11,7 +11,11 @@ vec3 ro;
 //https://stackoverflow.com/questions/45597118/fastest-way-to-do-min-max-based-on-specific-component-of-vectors-in-glsl
 vec2 minx(vec2 a, vec2 b)
 {
-    return mix( a, b, step( b.x, a.x ) );
+    float d = min(a.x, b.x);
+    float m = step(a.x, d+.001) * a.y;
+    m += step(b.x, d+.001) * b.y;
+    return vec2(d, m);
+    //return mix(a, b, clamp(step(b.x, a.x), 0., 1.));//artifact at horizon?
 }
 //iq's blend functions
 float sdfBlendUnion(float d1, float d2, float k){
