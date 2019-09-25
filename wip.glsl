@@ -3,7 +3,7 @@
 #define EPSILON 0.01
 #define AMBIENT 0.05
 
-float raymarch_d(vec3, vec3);
+vec2 raymarch_d(vec3, vec3);
 float raymarch_s(vec3, vec3, float);
 
 vec3 ro;
@@ -18,6 +18,11 @@ float sdfBlendUnion(float d1, float d2, float k){
     float h = clamp(0.5 + 0.5*(d2-d1)/k, 0.0, 1.0);
     return mix(d2, d1, h) - k*h*(1.0-h);
 }
+//with color
+vec2 sdfBlendUnionCol(vec2 d1, vec2 d2, float k){
+    float h = clamp(0.5 + 0.5*(d2.x-d1.x)/k, 0.0, 1.0);
+    return mix(d2, d1, h) - k*h*(1.0-h);
+}
 
 float sdfBlendSub(float d1, float d2, float k) {
     float h = clamp(0.5 - 0.5*(d2+d1)/k, 0.0, 1.0);
@@ -29,38 +34,38 @@ float sdfBlendInter(float d1, float d2, float k) {
     return mix(d2, d1, h) + k*h*(1.0-h);
 }
 
-float sphere(vec3 p, vec3 so, float sr){
+float sdfSphere(vec3 p, vec3 so, float sr){
 	return length(p - so) - sr;   
 }
 
-float capsule(vec3 p, float h, float r)
+float sdfCapsule(vec3 p, float h, float r)
 {
     p.y -= clamp(p.y, 0.0, h);
     return length(p) - r;
 }
 
-float caterpillar_dist(vec3 p){
+vec2 caterpillar(vec3 p){
     float z = 0.;
-    float head = sphere(p,vec3(-1.,1,z), .8);
-    float balll = sphere(p,vec3(-1.,2.5,z+.3), .15);
-    float ballr = sphere(p,vec3(-1.,2.5,z-.3), .15);
-    float stickl = capsule(p-vec3(-1.,1.5,z+.3), 1., .05);
-    float stickr = capsule(p-vec3(-1.,1.5,z-.3), 1., .05);
+    float head = sdfSphere(p,vec3(-1.,1,z), .8);
+    float balll = sdfSphere(p,vec3(-1.,2.5,z+.3), .15);
+    float ballr = sdfSphere(p,vec3(-1.,2.5,z-.3), .15);
+    float stickl = sdfCapsule(p-vec3(-1.,1.5,z+.3), 1., .05);
+    float stickr = sdfCapsule(p-vec3(-1.,1.5,z-.3), 1., .05);
     float c = .9;
     vec3 q = p;
     q.x = mod(max(0.,p.x),c*2.)-c;
-    float body0 = sphere(q,vec3(0,1,z), .6);
+    float body0 = sdfSphere(q,vec3(0,1,z), .6);
     q.x = mod(max(0.,p.x + c),c*2.)-c;
-    float body1 = sphere(q,vec3(0,1,z), .6);
+    float body1 = sdfSphere(q,vec3(0,1,z), .6);
     c *= .5;
     q.x = mod(max(0.,p.x + c),c*2.)-c;
-    float legl = capsule(q-vec3(0,.1,z+.3), .5, .05);
-    float legr = capsule(q-vec3(0,.1,z-.3), .5, .05);
-    float footl = sphere(q,vec3(-.15,0,z+.3), .1);
-    float footr = sphere(q,vec3(-.15,0,z-.3), .1);
-    float eyel = sphere(p,vec3(-1.65,1.4,z+.3), .1);
-    float eyer = sphere(p,vec3(-1.65,1.4,z-.3), .1);
-    float nose = sphere(p,vec3(-1.6,.9,z), .3);
+    float legl = sdfCapsule(q-vec3(0,.1,z+.3), .5, .05);
+    float legr = sdfCapsule(q-vec3(0,.1,z-.3), .5, .05);
+    float footl = sdfSphere(q,vec3(-.15,0,z+.3), .1);
+    float footr = sdfSphere(q,vec3(-.15,0,z-.3), .1);
+    float eyel = sdfSphere(p,vec3(-1.65,1.4,z+.3), .1);
+    float eyer = sdfSphere(p,vec3(-1.65,1.4,z-.3), .1);
+    float nose = sdfSphere(p,vec3(-1.6,.9,z), .3);
     float d = sdfBlendUnion(head, balll, .1);
     d = sdfBlendUnion(d, ballr, .1);
     d = sdfBlendUnion(d, stickl, .15);
@@ -74,29 +79,29 @@ float caterpillar_dist(vec3 p){
     d = sdfBlendUnion(d, eyel, .1);
     d = sdfBlendUnion(d, eyer, .1);
     d = sdfBlendUnion(d, nose, .1);
-    return d;
+    return vec2(d, 0.);
 }
 
-float scene_dist(vec3 p){
-    float boi = caterpillar_dist(p);
+vec2 scene(vec3 p){
+    vec2 boi = caterpillar(p);
     /*because of the infite lenght of the body,
 	there is a weird shadow artifact in the neg x dir,
 	as if the body kinda is there(but it shouldnt).
 	so we cut that part off, but smoothly*/
-    if(p.x < -3.) 
-        boi *= -p.x - 2.;
-    float floord = p.y;
-    float d = min(boi, floord);
+    if(p.x < -3.)
+        boi.x *= -p.x - 2.;
+    vec2 floord = vec2(p.y, 1.);
+    vec2 d = minx(boi, floord);
     return d;
 }
 
 vec3 calc_normal(vec3 p) {
-	float d = scene_dist(p);
+	float d = scene(p).x;
     vec2 e = vec2(.001, 0);
     vec3 n = d - vec3(
-        scene_dist(p-e.xyy),
-        scene_dist(p-e.yxy),
-        scene_dist(p-e.yyx));
+        scene(p-e.xyy).x,
+        scene(p-e.yxy).x,
+        scene(p-e.yyx).x);
     return normalize(n);
 }
 
@@ -127,14 +132,15 @@ vec3 calc_light(vec3 p){
     return e;
 }
 
-float raymarch_d(vec3 ro, vec3 rd){
-	float dO = 0.;
+vec2 raymarch_d(vec3 ro, vec3 rd){
+	vec2 dO = vec2(0);
     vec3 p;
     for(int i = 0; i < MAX_STEPS; i++){
-    	p = ro + rd*dO;
-        float dS = scene_dist(p);
-        dO += dS;
-        if(dO > MAX_DIST || dS < EPSILON)
+    	p = ro + rd*dO.x;
+        vec2 dS = scene(p);
+        dO.x += dS.x;
+        dO.y = dS.y;
+        if(dO.x > MAX_DIST || dS.x < EPSILON)
             break;
     }
     return dO;
@@ -146,17 +152,12 @@ float raymarch_s(vec3 ro, vec3 rd, float k){
     float res = 1.;
     for(int i = 0; i < MAX_STEPS; i++){
     	p = ro + rd*dO;
-        float dS = scene_dist(p);
+        float dS = scene(p).x;
         dO += dS;
         res = min(res, k*dS/dO);
         if(dO > MAX_DIST) break;
     }
     return res;
-}
-
-vec4 raymarch_p(vec3 ro, vec3 rd){
-	float dO = raymarch_d(ro, rd);
-    return vec4(ro + rd * dO, dO);
 }
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
@@ -165,19 +166,23 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 	
     vec3 col = vec3(0);
     float cdist = 6.;
-    ro = vec3(-1. + sin(iTime*.2)*cdist, 2., 0. + cos(iTime*.2)*cdist);
+    ro = vec3(-1. + sin(iTime*.1)*cdist, 2., 0. + cos(iTime*.1)*cdist);
     vec3 cd = normalize(vec3(-1, 1, 0) - ro);
     vec3 ri = -normalize(cross(cd, vec3(0,1,0)));
     vec3 up = -normalize(cross(ri, cd));
     vec3 planep = ro + (cd*1.) + (ri*uv.x) + (up*uv.y);
     vec3 rd = normalize(planep - ro);
-    vec4 res = raymarch_p(ro, rd);
-    if(res.w > MAX_DIST){
+    vec2 res = raymarch_d(ro, rd);
+    if(res.x > MAX_DIST){
         col = vec3(.3, .7, 1.);
         col = mix(col, vec3(.7, .7, .9), exp(rd.y*-10.));
-    }else
-    	col = calc_light(res.xyz);
-    
+    }else{
+    	col = calc_light(ro + rd * res.x);
+       	if(res.y < .5)
+            col *= vec3(.8,.6,.3);
+        else if(res.y < 1.5)
+            col *= vec3(.2,.6,.3);
+    }
     col = pow(col, vec3(.4545));
     
     fragColor = vec4(col,1.0);
