@@ -8,13 +8,13 @@ float raymarch_s(vec3, vec3, float);
 
 vec3 ro;
 
-//https://stackoverflow.com/questions/45597118/fastest-way-to-do-min-max-based-on-specific-component-of-vectors-in-glsl
 vec2 minx(vec2 a, vec2 b)
 {
     float d = min(a.x, b.x);
     float m = step(a.x, d+.0001) * a.y;
     m += step(b.x, d+.0001) * b.y;
     return vec2(d, m);
+    //https://stackoverflow.com/questions/45597118/fastest-way-to-do-min-max-based-on-specific-component-of-vectors-in-glsl
     //return mix(a, b, clamp(step(b.x, a.x), 0., 1.));//artifact at horizon?
 }
 //iq's blend functions
@@ -70,19 +70,19 @@ vec2 caterpillar(vec3 p){
     float eyel = sdfSphere(p,vec3(-1.65,1.4,z+.3), .1);
     float eyer = sdfSphere(p,vec3(-1.65,1.4,z-.3), .1);
     float nose = sdfSphere(p,vec3(-1.6,.9,z), .3);
-    vec2 d = sdfBlendUnionCol(vec2(head, 1.), vec2(balll, 4.), .1);
-    d = sdfBlendUnionCol(d, vec2(ballr, 4.), .1);
-    d = sdfBlendUnionCol(d, vec2(stickl, 1.), .15);
-    d = sdfBlendUnionCol(d, vec2(stickr, 1.), .15);
-    d = sdfBlendUnionCol(d, vec2(body0, 2.), .1);
-    d = sdfBlendUnionCol(d, vec2(body1, 3.), .15);
-    d = sdfBlendUnionCol(d, vec2(legl, 4.), .15);
-    d = sdfBlendUnionCol(d, vec2(legr, 4.), .15);
-    d = sdfBlendUnionCol(d, vec2(footl, 1.), .3);
-    d = sdfBlendUnionCol(d, vec2(footr, 1.), .3);
-    d = sdfBlendUnionCol(d, vec2(eyel, 4.), .1);
-    d = sdfBlendUnionCol(d, vec2(eyer, 4.), .1);
-    d = sdfBlendUnionCol(d, vec2(nose, 4.), .1);
+    vec2 d = sdfBlendUnionCol(vec2(head, 2.), vec2(balll, 1.), .1);
+    d = sdfBlendUnionCol(d, vec2(ballr, 1.), .1);
+    d = sdfBlendUnionCol(d, vec2(stickl, 2.), .15);
+    d = sdfBlendUnionCol(d, vec2(stickr, 2.), .15);
+    d = sdfBlendUnionCol(d, vec2(body0, 3.), .1);
+    d = sdfBlendUnionCol(d, vec2(body1, 4.), .15);
+    d = sdfBlendUnionCol(d, vec2(legl, 5.), .15);
+    d = sdfBlendUnionCol(d, vec2(legr, 5.), .15);
+    d = sdfBlendUnionCol(d, vec2(footl, 6.), .3);
+    d = sdfBlendUnionCol(d, vec2(footr, 6.), .3);
+    d = sdfBlendUnionCol(d, vec2(eyel, 1.), .1);
+    d = sdfBlendUnionCol(d, vec2(eyer, 1.), .1);
+    d = sdfBlendUnionCol(d, vec2(nose, 1.), .1);
     return d;
 }
 
@@ -185,12 +185,16 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
        	if(res.y < 0.5)
             col *= vec3(.2,.6,.3);
         else if(res.y < 1.5)
-            col *= vec3(.8,.6,.3);
+            col *= vec3(.2,.2,.2);
         else if(res.y < 2.5)
-            col *= vec3(.6,.2,.2);
+            col *= vec3(.8,.6,.3);
         else if(res.y < 3.5)
             col *= vec3(.2,.2,.6);
         else if(res.y < 4.5)
+            col *= vec3(.6,.2,.2);
+        else if(res.y < 5.5)
+            col *= vec3(.8,.6,.3);
+        else
             col *= vec3(.2,.2,.2);
     }
     col = pow(col, vec3(.4545));
