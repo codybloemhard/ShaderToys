@@ -8,6 +8,16 @@ float raymarch_s(vec3, vec3, float);
 
 vec3 ro;
 
+vec3 coloures[] = vec3[] ( //fool, orang is coloure!
+	vec3(.2,.6,.3),
+	vec3(.2,.2,.2),
+	vec3(.8,.6,.3),
+	vec3(.2,.2,.6),
+	vec3(.6,.2,.2),
+	vec3(.8,.6,.3),
+	vec3(.2,.2,.2)
+);
+
 vec2 minx(vec2 a, vec2 b)
 {
     float d = min(a.x, b.x);
@@ -182,20 +192,10 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         col = mix(col, vec3(.7, .7, .9), exp(rd.y*-10.));
     }else{
     	col = calc_light(ro + rd * res.x);
-       	if(res.y < 0.5)
-            col *= vec3(.2,.6,.3);
-        else if(res.y < 1.5)
-            col *= vec3(.2,.2,.2);
-        else if(res.y < 2.5)
-            col *= vec3(.8,.6,.3);
-        else if(res.y < 3.5)
-            col *= vec3(.2,.2,.6);
-        else if(res.y < 4.5)
-            col *= vec3(.6,.2,.2);
-        else if(res.y < 5.5)
-            col *= vec3(.8,.6,.3);
-        else
-            col *= vec3(.2,.2,.2);
+       	float frac = fract(res.y);
+        int low = int(res.y);
+        int high = low + 1;
+        col *= mix(coloures[low], coloures[high], frac);
     }
     col = pow(col, vec3(.4545));
     
