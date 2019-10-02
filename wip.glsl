@@ -32,9 +32,15 @@ float sdfBlendUnion(float d1, float d2, float k){
     return mix(d2, d1, h) - k*h*(1.0-h);
 }
 //with color
-vec2 sdfBlendUnionCol(vec2 d1, vec2 d2, float k){
+vec2 sdfBlendUnionTwin(vec2 d1, vec2 d2, float k){
     float h = clamp(0.5 + 0.5*(d2.x-d1.x)/k, 0.0, 1.0);
     return mix(d2, d1, h) - k*h*(1.0-h);
+}
+//d1 = vec4(dist,rgb), d2 = vec2(dist, material), k = blend parameter
+vec4 sdfBlendUnionCol(vec4 old, vec2 new, float k){
+    vec2 temp = sdfBlendUnionTwin(vec2(old.x, 0.), vec2(new.x, 1.), k);
+    vec3 cc = mix(old.yzw, coloures[int(new.y)], temp.y);
+    return vec4(temp.x, cc);
 }
 
 float sdfBlendSub(float d1, float d2, float k) {
@@ -79,20 +85,20 @@ vec4 caterpillar(vec3 p){
     float eyel = sdfSphere(p,vec3(-1.65,1.4,z+.3), .1);
     float eyer = sdfSphere(p,vec3(-1.65,1.4,z-.3), .1);
     float nose = sdfSphere(p,vec3(-1.6,.9,z), .3);
-    vec2 d = sdfBlendUnionCol(vec2(head, 2.), vec2(balll, 1.), .1);
-    d = sdfBlendUnionCol(d, vec2(ballr, 1.), .1);
-    d = sdfBlendUnionCol(d, vec2(stickl, 2.), .15);
-    d = sdfBlendUnionCol(d, vec2(stickr, 2.), .15);
-    d = sdfBlendUnionCol(d, vec2(body0, 4.), .1);
-    d = sdfBlendUnionCol(d, vec2(body1, 3.), .15);
-    d = sdfBlendUnionCol(d, vec2(legl, 5.), .15);
-    d = sdfBlendUnionCol(d, vec2(legr, 5.), .15);
-    d = sdfBlendUnionCol(d, vec2(footl, 6.), .3);
-    d = sdfBlendUnionCol(d, vec2(footr, 6.), .3);
-    d = sdfBlendUnionCol(d, vec2(eyel, 1.), .1);
-    d = sdfBlendUnionCol(d, vec2(eyer, 1.), .1);
-    d = sdfBlendUnionCol(d, vec2(nose, 1.), .1);
-    return vec4(d.x, vec3(1.));
+    vec4 d = sdfBlendUnionCol(vec4(head, coloures[1]), vec2(balll, 0.), .1);
+    d = sdfBlendUnionCol(d, vec2(ballr, 0.), .1);
+    d = sdfBlendUnionCol(d, vec2(stickl, 1.), .15);
+    d = sdfBlendUnionCol(d, vec2(stickr, 1.), .15);
+    d = sdfBlendUnionCol(d, vec2(body0, 3.), .1);
+    d = sdfBlendUnionCol(d, vec2(body1, 2.), .15);
+    d = sdfBlendUnionCol(d, vec2(legl, 4.), .15);
+    d = sdfBlendUnionCol(d, vec2(legr, 4.), .15);
+    d = sdfBlendUnionCol(d, vec2(footl, 5.), .3);
+    d = sdfBlendUnionCol(d, vec2(footr, 5.), .3);
+    d = sdfBlendUnionCol(d, vec2(eyel, 0.), .1);
+    d = sdfBlendUnionCol(d, vec2(eyer, 0.), .1);
+    d = sdfBlendUnionCol(d, vec2(nose, 0.), .1);
+    return d;
 }
 
 vec4 scene(vec3 p){
