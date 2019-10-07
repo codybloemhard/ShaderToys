@@ -64,12 +64,16 @@ float sdfCapsule(vec3 p, float h, float r)
 }
 
 vec4 caterpillar(vec3 p){
-    float z = 0.;
+    float z = sin((p.x + iTime) * 0.5) * 0.5;
     float head = sdfSphere(p,vec3(-1.,1,z), .8);
-    float balll = sdfSphere(p,vec3(-1.,2.5,z+.3), .15);
-    float ballr = sdfSphere(p,vec3(-1.,2.5,z-.3), .15);
-    float stickl = sdfCapsule(p-vec3(-1.,1.5,z+.3), 1., .05);
-    float stickr = sdfCapsule(p-vec3(-1.,1.5,z-.3), 1., .05);
+    float stransz = sin((p.y + iTime)*2.) * 0.05;
+    float ctransz = cos((p.y + iTime)*2.) * 0.05;
+    float stransx = sin(p.y + iTime) * 0.1;
+    float ctransx = cos(p.y + iTime) * 0.1;
+    float balll = sdfSphere(p,vec3(-1.+ctransx,2.5,z+.3+stransz), .15);
+    float ballr = sdfSphere(p,vec3(-1.+stransx,2.5,z-.3+stransz), .15);
+    float stickl = sdfCapsule(p-vec3(-1.+ctransx,1.5,z+.3+stransz), 1., .05);
+    float stickr = sdfCapsule(p-vec3(-1.+stransx,1.5,z-.3+ctransz), 1., .05);
     float c = .9;
     vec3 q = p;
     q.x = mod(max(0.,p.x),c*2.)-c;
@@ -78,10 +82,12 @@ vec4 caterpillar(vec3 p){
     float body1 = sdfSphere(q,vec3(0,1,z), .6);
     c *= .5;
     q.x = mod(max(0.,p.x + c),c*2.)-c;
-    float legl = sdfCapsule(q-vec3(0,.1,z+.3), .5, .05);
-    float legr = sdfCapsule(q-vec3(0,.1,z-.3), .5, .05);
-    float footl = sdfSphere(q,vec3(-.15,0,z+.3), .1);
-    float footr = sdfSphere(q,vec3(-.15,0,z-.3), .1);
+    float llh = sin((p.x + iTime) * 10.) * 0.1;
+    float lrh = cos((p.x + iTime) * 10.) * 0.1;
+    float legl = sdfCapsule(q-vec3(0,.15+llh,z+.3), .5, .05);
+    float legr = sdfCapsule(q-vec3(0,.15+lrh,z-.3), .5, .05);
+    float footl = sdfSphere(q,vec3(-.15,0.05+llh,z+.3), .1);
+    float footr = sdfSphere(q,vec3(-.15,0.05+lrh,z-.3), .1);
     float eyel = sdfSphere(p,vec3(-1.65,1.4,z+.3), .1);
     float eyer = sdfSphere(p,vec3(-1.65,1.4,z-.3), .1);
     float nose = sdfSphere(p,vec3(-1.6,.9,z), .3);
@@ -185,7 +191,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 	
     vec3 col = vec3(0);
     float cdist = 6.;
-    ro = vec3(-1. + sin(iTime*.1)*cdist, 2., 0. + cos(iTime*.1)*cdist);
+    ro = vec3(-1. + sin(iTime*.1)*cdist, 3., 0. + cos(iTime*.1)*cdist);
     vec3 cd = normalize(vec3(-1, 1, 0) - ro);
     vec3 ri = -normalize(cross(cd, vec3(0,1,0)));
     vec3 up = -normalize(cross(ri, cd));
