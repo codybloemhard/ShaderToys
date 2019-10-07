@@ -71,9 +71,9 @@ vec4 caterpillar(vec3 p){
     float stransx = sin(p.y + iTime) * 0.1;
     float ctransx = cos(p.y + iTime) * 0.1;
     float balll = sdfSphere(p,vec3(-1.+ctransx,2.5,z+.3+stransz), .15);
-    float ballr = sdfSphere(p,vec3(-1.+stransx,2.5,z-.3+stransz), .15);
-    float stickl = sdfCapsule(p-vec3(-1.+ctransx,1.5,z+.3+stransz), 1., .05);
-    float stickr = sdfCapsule(p-vec3(-1.+stransx,1.5,z-.3+ctransz), 1., .05);
+    float ballr = sdfSphere(p,vec3(-1.+stransx,2.5,z-.3+ctransz), .15);
+    float stickl = sdfCapsule(p-vec3(-1.+ctransx,1.5,z+.3+stransz), 0.75, .05);
+    float stickr = sdfCapsule(p-vec3(-1.+stransx,1.5,z-.3+ctransz), 0.75, .05);
     float c = .9;
     vec3 q = p;
     q.x = mod(max(0.,p.x),c*2.)-c;
