@@ -1,4 +1,3 @@
-//#### 2D SDF
 // https://iquilezles.org/www/articles/smin/smin.htm
 float op_union(float d1, float d2, float k){
     float h = max(k-abs(d1-d2),0.0);
@@ -15,16 +14,6 @@ float op_inter(float d1, float d2, float k){
     return max(d1, d2) + h*h*0.25/k;
 }
 // https://iquilezles.org/www/articles/distfunctions2d/distfunctions2d.htm
-
-//sdf for hor. line. xmm: min and max value for line x
-float sdf_line_x(vec2 uv, vec2 xmm){
-	return length(uv - vec2(clamp(uv.x, xmm.x, xmm.y), 0.));
-}
-//sdf for ver. line. ymm: min and max value for line y
-float sdf_line_y(vec2 uv, vec2 ymm){
-	return length(uv - vec2(0., clamp(uv.y, ymm.x, ymm.y)));
-}
-
 float sdf_circle(vec2 uv, vec2 pos, float rad){
 	return length(uv - pos) - rad;
 }
@@ -64,29 +53,16 @@ float pr_circle(vec2 uv, vec2 pos, float rad, float smoothness){
 float pr_rect(vec2 uv, vec2 pos, vec2 hsize, float smoothness){
 	return smoothstep(smoothness,0.0,sdf_rect(uv, pos, hsize));
 }
-//#### NOISE
-//https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
-float wn11(float n){return fract(sin(n) * 43758.5453123);}
-//https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
-float sn11(float p){
-	float fl = floor(p);
-  	float fc = fract(p);
-	return mix(wn11(fl), wn11(fl + 1.0), fc);
-}
-//https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
-float wn21(vec2 c){
-	return fract(sin(dot(c.xy ,vec2(12.9898,78.233))) * 43758.5453);
-}
 
-void mainImage( out vec4 fragColor, in vec2 fragCoord )
+void mainImage(out vec4 fragColor, in vec2 fragCoord)
 {
-    // Normalized pixel coordinates (from 0 to 1)
-    vec2 uv = (fragCoord-.5*iResolution.xy)/iResolution.y;
-	//uv *= pow(1.5,iTime) * .00000001;
-    uv *= 1000000.;
-    vec3 col = vec3(0.);
-
-    col = vec3(wn21(uv));
-
-    fragColor = vec4(col,1.0);
+    vec2 uv = (fragCoord - 0.5 * iResolution.xy) /  iResolution.y;
+    float a = sdf_circle(uv, vec2(-0.1,0.02), 0.1);
+	float b = sdf_circle(uv, vec2(+0.1,0.0), 0.1);
+    float col = op_union(a,b,0.2);
+    col = op_union(col,sdf_triangle(uv,vec2(-0.17,0.15),vec2(-0.18,0.06),vec2(-0.15,0.1)),0.01);
+    col = smoothstep(0.01,0.0,col);
+    vec3 colour = vec3(col);
+    // Output to screen
+    fragColor = vec4(colour,1.0);
 }
